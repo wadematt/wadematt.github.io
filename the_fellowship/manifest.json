@@ -3,7 +3,6 @@
   "name": "The Fellowship",
   "version": "1.0",
   "description": "Tired of boring names? This extension replaces them with the heroes (and hobbits) of The Fellowship of the Ring.",
-  "permissions": ["activeTab", "scripting"],
   "host_permissions": ["<all_urls>"],
   "browser_specific_settings": {
     "gecko": {
