@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "The Fellowship",
   "version": "2.0.0",
-  "description": "Replaces people's names with characters from The Lord of the Rings: Frodo, Sam, Aragorn, Gandalf, Gimli, Legolas, Merry, Pippin, and Boromir",
+  "description": "Replaces people's names with Lord of the Rings characters: Frodo, Sam, Aragorn, Gandalf, Gimli, Legolas, Merry, Pippin, & Boromir",
   "permissions": ["storage", "activeTab"],
   "action": {
     "default_popup": "popup.html",
