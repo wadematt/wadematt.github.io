@@ -2,6 +2,17 @@
 
 All notable changes to The Fellowship browser extension will be documented in this file.
 
+## [2.1.0] - 25 May 2025
+
+### Enhanced
+- Advanced name consistency throughout documents:
+  - Improved partial name detection (first/last names are now tracked and replaced consistently)
+  - Enhanced possessive form handling (e.g., "Leo's" → "Frodo's" when "Pope Leo" → "Pope Frodo")
+  - Better punctuation preservation for names with trailing commas, periods, etc.
+- Optimized LOTR character assignment:
+  - Implemented cycling through all Fellowship characters before reusing any names
+  - More equitable distribution of character names across detected people
+
 ## [2.0.0] - 20 May 2025
 
 ### Added
