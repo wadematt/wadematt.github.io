@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fellowship Extension Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        h2 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fellowship Extension Test Page</h1>
+    
+    <div class="test-section">
+        <h2>Basic Name Detection</h2>
+        <p>John Smith is a great person. John works at the company with Mary Johnson.</p>
+        <p>Dr. Sarah Wilson and Professor Michael Brown are collaborating on a project.</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>Possessive Forms</h2>
+        <p>This is John's car. Mary's house is beautiful.</p>
+        <p>The students' papers were graded by Mr. Davis.</p>
+        <p>James' presentation was excellent.</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>Names with Titles</h2>
+        <p>Mr. Robert Taylor met with Mrs. Linda Anderson yesterday.</p>
+        <p>President Elizabeth Carter announced the new policy.</p>
+        <p>Sir William Thompson received an honor.</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>Repeated Names</h2>
+        <p>Alice Cooper sang a song. Alice is very talented. Cooper's music is amazing.</p>
+        <p>Tom and Jerry are friends. Tom's cat chased Jerry around the house.</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>Names with Punctuation</h2>
+        <p>Hello, David! How are you? David, please come here.</p>
+        <p>"Susan," he called, "can you help me?" Susan's response was quick.</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>Mixed Content</h2>
+        <p>The meeting included George Washington, Thomas Jefferson, and Benjamin Franklin.</p>
+        <p>Washington's leadership, Jefferson's vision, and Franklin's wisdom shaped the nation.</p>
+    </div>
+    
+    <script>
+        // Add some dynamic content to test mutation observer
+        setTimeout(() => {
+            const newDiv = document.createElement('div');
+            newDiv.className = 'test-section';
+            newDiv.innerHTML = '<h2>Dynamic Content</h2><p>This content was added dynamically. Emma Watson and Daniel Radcliffe starred in the movie. Emma\'s performance was outstanding.</p>';
+            document.body.appendChild(newDiv);
+        }, 2000);
+    </script>
+</body>
+</html>
