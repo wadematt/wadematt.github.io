@@ -41,9 +41,13 @@ function getReplacementName(originalName) {
     return cleanName;
   }
   
+  console.log(`[Fellowship] Getting replacement for: "${originalName}" -> clean: "${cleanName}"`);
+  
   // Check if this exact name has been mapped before
   if (nameMap.has(cleanName)) {
-    return nameMap.get(cleanName);
+    const result = nameMap.get(cleanName);
+    console.log(`[Fellowship] Found exact match: ${cleanName} -> ${result}`);
+    return result;
   }
   
   // Check if any part of this name has been seen before as part of a full name
@@ -55,6 +59,7 @@ function getReplacementName(originalName) {
       if (lotrName) {
         // If we found a match through name parts, use that character
         nameMap.set(cleanName, lotrName);
+        console.log(`[Fellowship] Found via part match: ${part} -> ${fullName} -> ${lotrName}, mapping ${cleanName} -> ${lotrName}`);
         return lotrName;
       }
     }
@@ -63,12 +68,14 @@ function getReplacementName(originalName) {
   // This is a new name, assign a new Fellowship character
   const fellowshipName = getNextFellowshipName();
   nameMap.set(cleanName, fellowshipName);
+  console.log(`[Fellowship] New mapping: ${cleanName} -> ${fellowshipName}`);
   
   // Store individual name parts for future matching
   if (nameParts.length > 1) {
     for (const part of nameParts) {
       if (part.length > 1) { // Skip initials or single letters
         namePartsMap.set(part, cleanName);
+        console.log(`[Fellowship] Name part mapping: ${part} -> ${cleanName}`);
       }
     }
   }
@@ -88,63 +95,31 @@ function processTextNode(textNode) {
     // Check if any people were found
     if (people.length > 0) {
       let newText = text;
+      const processedNames = new Set(); // Track what we've already processed
       
-      // Get all person entities as an array with their text
+      // Get all person entities and their text
       people.forEach(person => {
-        const nameText = person.text();
+        const nameText = person.text().trim();
         
-        // Skip empty or very short strings
-        if (!nameText || nameText.length < 2) return;
+        // Skip empty, very short strings, or already processed names
+        if (!nameText || nameText.length < 2 || processedNames.has(nameText.toLowerCase())) return;
         
-        // Handle possessive forms
-        let cleanName = nameText;
-        let isPossessive = false;
-        let possessiveSuffix = '';
+        processedNames.add(nameText.toLowerCase());
         
-        // Check for possessive markers
-        if (cleanName.endsWith("'s")) {
-          cleanName = cleanName.slice(0, -2);
-          isPossessive = true;
-          possessiveSuffix = "'s";
-        } else if (cleanName.endsWith("'")) {
-          cleanName = cleanName.slice(0, -1);
-          isPossessive = true;
-          possessiveSuffix = "'";
+        // Process this name and get replacement
+        const replacement = processNameText(nameText);
+        
+        if (replacement && replacement !== nameText) {
+          // Create a regex to find and replace the exact match with word boundaries
+          const escapedOriginal = nameText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const nameRegex = new RegExp(`\\b${escapedOriginal}\\b`, 'g');
+          
+          newText = newText.replace(nameRegex, replacement);
         }
-        
-        // Check for title prefixes
-        const titlePattern = /^(Mr\.|Mrs\.|Ms\.|Miss|Dr\.|Doctor|President|Professor|Prof\.|Sir|Lady|Lord|Dame|Pope|Queen|King|Prince|Princess)\s+(.+)$/i;
-        const titleMatch = cleanName.match(titlePattern);
-        
-        let nameToMap;
-        let titlePrefix = '';
-        
-        if (titleMatch) {
-          titlePrefix = titleMatch[1] + ' ';
-          nameToMap = titleMatch[2];
-        } else {
-          nameToMap = cleanName;
-        }
-        
-        // Get the LOTR replacement
-        const replacement = getReplacementName(nameToMap.trim());
-        
-        // Build the final replacement with title and possessive
-        let finalReplacement = titlePrefix + replacement;
-        if (isPossessive) {
-          if (replacement.endsWith('s')) {
-            finalReplacement += "'";
-          } else {
-            finalReplacement += "'s";
-          }
-        }
-        
-        // Create a regex to find and replace the exact match
-        const escapedOriginal = nameText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const nameRegex = new RegExp(`\\b${escapedOriginal}\\b`, 'g');
-        
-        newText = newText.replace(nameRegex, finalReplacement);
       });
+      
+      // Additional pass: look for possessive forms and standalone names that might have been missed
+      newText = processAdditionalNameForms(newText);
       
       // Update the text node if changes were made
       if (newText !== text) {
@@ -154,6 +129,97 @@ function processTextNode(textNode) {
   } catch (error) {
     console.error("The Fellowship extension error:", error);
   }
+}
+
+// Helper function to process a single name text and return replacement
+function processNameText(nameText) {
+  // Handle possessive forms
+  let cleanName = nameText;
+  let isPossessive = false;
+  let possessiveSuffix = '';
+  
+  // Check for possessive markers
+  if (cleanName.endsWith("'s")) {
+    cleanName = cleanName.slice(0, -2);
+    isPossessive = true;
+    possessiveSuffix = "'s";
+  } else if (cleanName.endsWith("'")) {
+    cleanName = cleanName.slice(0, -1);
+    isPossessive = true;
+    possessiveSuffix = "'";
+  }
+  
+  // Check for title prefixes
+  const titlePattern = /^(Mr\.|Mrs\.|Ms\.|Miss|Dr\.|Doctor|President|Professor|Prof\.|Sir|Lady|Lord|Dame|Pope|Queen|King|Prince|Princess)\s+(.+)$/i;
+  const titleMatch = cleanName.match(titlePattern);
+  
+  let nameToMap;
+  let titlePrefix = '';
+  
+  if (titleMatch) {
+    titlePrefix = titleMatch[1] + ' ';
+    nameToMap = titleMatch[2];
+  } else {
+    nameToMap = cleanName;
+  }
+  
+  // Get the LOTR replacement
+  const replacement = getReplacementName(nameToMap.trim());
+  
+  // Build the final replacement with title and possessive
+  let finalReplacement = titlePrefix + replacement;
+  if (isPossessive) {
+    if (replacement.endsWith('s')) {
+      finalReplacement += "'";
+    } else {
+      finalReplacement += "'s";
+    }
+  }
+  
+  return finalReplacement;
+}
+
+// Helper function to handle additional name forms
+function processAdditionalNameForms(text) {
+  let newText = text;
+  
+  // Look for possessive forms that might not have been caught by compromise
+  // Pattern: Word followed by 's or just ' (for names ending in s)
+  const possessivePattern = /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)'s?\b/g;
+  
+  newText = newText.replace(possessivePattern, (match, baseName) => {
+    // Check if this name (without possessive) has already been mapped
+    const mappedName = findMappedName(baseName);
+    if (mappedName) {
+      // Return the possessive form of the mapped name
+      if (match.endsWith("'s")) {
+        return mappedName.endsWith('s') ? mappedName + "'" : mappedName + "'s";
+      } else if (match.endsWith("'")) {
+        return mappedName + "'";
+      }
+    }
+    return match; // Return unchanged if no mapping found
+  });
+  
+  return newText;
+}
+
+// Helper function to find if a name has been mapped
+function findMappedName(searchName) {
+  // First check direct mapping
+  if (nameMap.has(searchName)) {
+    return nameMap.get(searchName);
+  }
+  
+  // Check if this is part of a longer name that was mapped
+  for (const [fullName, lotrName] of nameMap.entries()) {
+    const nameParts = fullName.split(/\s+/);
+    if (nameParts.includes(searchName)) {
+      return lotrName;
+    }
+  }
+  
+  return null;
 }
 
 // Function to traverse DOM and process text nodes
@@ -280,47 +346,62 @@ function processAdditionalNames() {
     textNodes.push(node);
   }
   
-  // Process each text node to replace name parts that weren't caught by compromise
+  // Process each text node to ensure name consistency
   textNodes.forEach(textNode => {
     let text = textNode.nodeValue;
     let modified = false;
     
-    // For each mapped full name, check if individual parts appear in the text
+    // Look for any remaining instances of mapped names (including possessive forms)
     for (const [fullName, lotrCharacter] of nameMap.entries()) {
       const nameParts = fullName.split(/\s+/);
       
-      // Only process multi-part names
-      if (nameParts.length > 1) {
-        nameParts.forEach(part => {
-          if (part.length > 1) { // Skip initials
-            // Create patterns for the name part and its possessive forms
-            const escapedPart = part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            
-            // Match standalone name parts (not already replaced)
-            const partRegex = new RegExp(`\\b${escapedPart}\\b(?!'[s]?)`, 'g');
-            const possessiveRegex = new RegExp(`\\b${escapedPart}'s\\b`, 'g');
-            const possessiveOnlyRegex = new RegExp(`\\b${escapedPart}'\\b`, 'g');
-            
-            // Replace standalone part
-            if (partRegex.test(text)) {
-              text = text.replace(partRegex, lotrCharacter);
-              modified = true;
-            }
-            
-            // Replace possessive forms
-            const lotrPossessive = lotrCharacter.endsWith('s') ? `${lotrCharacter}'` : `${lotrCharacter}'s`;
-            if (possessiveRegex.test(text)) {
-              text = text.replace(possessiveRegex, lotrPossessive);
-              modified = true;
-            }
-            
-            // Handle names ending in 's' with just an apostrophe
-            if (possessiveOnlyRegex.test(text) && part.endsWith('s')) {
-              text = text.replace(possessiveOnlyRegex, `${lotrCharacter}'`);
-              modified = true;
-            }
+      // Process each part of the name
+      nameParts.forEach(part => {
+        if (part.length > 1) { // Skip initials
+          const escapedPart = part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          
+          // Look for standalone instances of this name part
+          const standaloneRegex = new RegExp(`\\b${escapedPart}\\b(?!'s?)`, 'g');
+          
+          // Look for possessive instances
+          const possessiveRegex = new RegExp(`\\b${escapedPart}'s\\b`, 'g');
+          const possessiveOnlyRegex = new RegExp(`\\b${escapedPart}'\\b`, 'g');
+          
+          // Replace standalone instances
+          if (standaloneRegex.test(text)) {
+            text = text.replace(standaloneRegex, lotrCharacter);
+            modified = true;
           }
-        });
+          
+          // Replace possessive forms
+          if (possessiveRegex.test(text)) {
+            const lotrPossessive = lotrCharacter.endsWith('s') ? `${lotrCharacter}'` : `${lotrCharacter}'s`;
+            text = text.replace(possessiveRegex, lotrPossessive);
+            modified = true;
+          }
+          
+          // Handle possessive-only (for names ending in 's')
+          if (possessiveOnlyRegex.test(text)) {
+            text = text.replace(possessiveOnlyRegex, `${lotrCharacter}'`);
+            modified = true;
+          }
+        }
+      });
+      
+      // Also check for the full name in possessive form
+      const escapedFullName = fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const fullNamePossessiveRegex = new RegExp(`\\b${escapedFullName}'s\\b`, 'g');
+      const fullNamePossessiveOnlyRegex = new RegExp(`\\b${escapedFullName}'\\b`, 'g');
+      
+      if (fullNamePossessiveRegex.test(text)) {
+        const lotrPossessive = lotrCharacter.endsWith('s') ? `${lotrCharacter}'` : `${lotrCharacter}'s`;
+        text = text.replace(fullNamePossessiveRegex, lotrPossessive);
+        modified = true;
+      }
+      
+      if (fullNamePossessiveOnlyRegex.test(text)) {
+        text = text.replace(fullNamePossessiveOnlyRegex, `${lotrCharacter}'`);
+        modified = true;
       }
     }
     
