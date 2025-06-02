@@ -2,6 +2,18 @@
 
 All notable changes to The Fellowship browser extension will be documented in this file.
 
+## [2.2.0] - 1 June 2025
+
+### Enhanced
+- Better utilization of Compromise.js NLP library resulting in more accurate name detection
+- Name-to-LOTR character mappings now consistently persist throughout the entire page
+
+### Technical Improvements
+- Replaced simple character cycling with sophisticated usage tracking using Map data structure
+- Added comprehensive character usage counting to ensure balanced distribution
+- Optimized performance with better data structure management
+- Enhanced debugging capabilities with detailed usage statistics logging
+
 ## [2.1.0] - 25 May 2025
 
 ### Enhanced
