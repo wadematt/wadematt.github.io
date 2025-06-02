@@ -14,8 +14,10 @@ This browser extension detects and replaces people's names on webpages with char
 
 This extension is designed to work on Chrome, Edge, and Firefox. Due to differences in how browsers implement the Manifest V3 standard, we provide two manifest files:
 
-1. **manifest.json** - For Chrome and Edge
-2. **manifest-firefox.json** - For Firefox
+1. **chromium.json** - For Chrome and Edge
+2. **firefox.json** - For Firefox
+
+A copy of the appropriate manifest file for your browser should be in the root of /the_fellowship with the name manifest.json 
 
 ### Installing on Different Browsers for Development
 
@@ -23,13 +25,12 @@ This extension is designed to work on Chrome, Edge, and Firefox. Due to differen
 1. Open Chrome/Edge and navigate to `chrome://extensions/` or `edge://extensions/`
 2. Enable "Developer mode"
 3. Click "Load unpacked" and select the extension directory
-4. Use the default `manifest.json` file
+4. Select the `manifest.json` file
 
 #### Firefox
 1. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`
 2. Click "Load Temporary Add-on..."
-3. Select the `manifest-firefox.json` file in the extension directory
-   (alternatively, you can temporarily rename `manifest-firefox.json` to `manifest.json`)
+3. Select the `manifest.json` file
 
 ### Key Differences Between Manifests
 
@@ -41,16 +42,6 @@ This extension is designed to work on Chrome, Edge, and Firefox. Due to differen
 1. Click on the extension icon in your browser toolbar
 2. Toggle the switch to enable or disable the name replacement
 3. Browse the web and enjoy seeing The Fellowship members everywhere!
-
-## Creating a Production Version
-
-When creating the final version of your extension for different stores:
-
-1. For Chrome Web Store / Edge Add-ons:
-   - Use the default `manifest.json`
-
-2. For Firefox Add-ons:
-   - Use `manifest-firefox.json` (renamed to `manifest.json`)
 
 ## How It Works
 
