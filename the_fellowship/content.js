@@ -10,25 +10,34 @@ const fellowshipNames = [
 // Maps to store consistent name replacements
 const nameMap = new Map(); // Full name to LOTR character mapping
 const namePartsMap = new Map(); // First/last name parts to full name mapping
-const usedCharacters = new Set(); // Track which characters have been used
+const characterUsageCount = new Map(); // Track how many times each character has been used
 
-// Function to get a non-repeating fellowship name
+// Initialize usage count for all characters
+fellowshipNames.forEach(name => {
+  characterUsageCount.set(name, 0);
+});
+
+// Function to get a randomly selected fellowship name with balanced distribution
 function getNextFellowshipName() {
-  // If all names have been used, reset the tracking
-  if (usedCharacters.size >= fellowshipNames.length) {
-    usedCharacters.clear();
-  }
+  // Find the minimum usage count
+  const minUsage = Math.min(...characterUsageCount.values());
   
-  // Find an unused character
-  for (const name of fellowshipNames) {
-    if (!usedCharacters.has(name)) {
-      usedCharacters.add(name);
-      return name;
-    }
-  }
+  // Get all characters that have the minimum usage count
+  const availableCharacters = fellowshipNames.filter(name => 
+    characterUsageCount.get(name) === minUsage
+  );
   
-  // Fallback (should not reach here)
-  return fellowshipNames[Math.floor(Math.random() * fellowshipNames.length)];
+  // Randomly select from the least-used characters
+  const randomIndex = Math.floor(Math.random() * availableCharacters.length);
+  const selectedCharacter = availableCharacters[randomIndex];
+  
+  // Increment the usage count for the selected character
+  characterUsageCount.set(selectedCharacter, characterUsageCount.get(selectedCharacter) + 1);
+  
+  console.log(`[Fellowship] Selected character: ${selectedCharacter} (usage count: ${characterUsageCount.get(selectedCharacter)})`);
+  console.log(`[Fellowship] Current usage counts:`, Object.fromEntries(characterUsageCount));
+  
+  return selectedCharacter;
 }
 
 // Function to get consistent replacement for a name
@@ -247,7 +256,11 @@ function replaceNames() {
   // Clear the maps for consistency across the page
   nameMap.clear();
   namePartsMap.clear();
-  usedCharacters.clear();
+  
+  // Reset character usage counts to ensure balanced distribution per page
+  fellowshipNames.forEach(name => {
+    characterUsageCount.set(name, 0);
+  });
   
   // Process the entire document body
   traverseDOM(document.body);
